@@ -26,13 +26,24 @@
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
         .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
-        button[type="submit"] { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
-        button[type="submit"]:hover { background: #1d4ed8; }
+        
+        .btn-primary { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; font-size: 0.95rem; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-cancel { background: #6b7280; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 8px; font-size: 0.88rem; }
+        .btn-cancel:hover { background: #4b5563; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
         table th, table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
         table th { background: #f8fafc; color: #475569; }
-        .btn-sm { padding: 4px 8px; font-size: 0.8rem; width: auto; display: inline-block; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-sm:hover { background: #b91c1c; }
+        
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; width: auto; display: inline-block; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .btn-add-stock { background: #16a34a; color: white; margin-right: 4px; }
+        .btn-add-stock:hover { background: #15803d; }
+        .btn-edit { background: #d97706; color: white; margin-right: 4px; }
+        .btn-edit:hover { background: #b45309; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+
         .badge-size { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         .badge-thick { background-color: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         
@@ -57,7 +68,7 @@
             <label>Kata Sandi</label>
             <input type="password" id="login-password" placeholder="••••••••" required>
         </div>
-        <button type="submit" style="background:#1e3a8a;">Masuk Sistem</button>
+        <button type="submit" class="btn-primary" style="background:#1e3a8a;">Masuk Sistem</button>
     </form>
     <p id="login-error" style="color: red; margin-top: 15px; display: none; font-size: 0.85rem;"></p>
 </div>
@@ -75,7 +86,7 @@
     </header>
 
     <div class="grid-2">
-        <div class="card">
+        <div class="card" id="form-card">
             <h2>📦 Input / Update Stok Produk</h2>
             <form id="product-form">
                 <div class="form-group">
@@ -120,7 +131,8 @@
                     <label>Jumlah Stok</label>
                     <input type="number" id="prod-stock" placeholder="5" required>
                 </div>
-                <button type="submit">Tambah / Perbarui Stok Cloud</button>
+                <button type="submit" class="btn-primary" id="btn-submit-prod">Tambah / Perbarui Stok Cloud</button>
+                <button type="button" class="btn-cancel" id="btn-cancel-edit" onclick="cancelEdit()" style="display: none;">❌ Batal Edit</button>
             </form>
         </div>
 
@@ -189,6 +201,7 @@
     const auth = firebase.auth();
 
     let products = [];
+    let editingIndex = -1; // Menyimpan index produk yang sedang di-edit
 
     // Cek Status Login Pengguna
     auth.onAuthStateChanged((user) => {
@@ -250,10 +263,64 @@
                     <td>${formatRupiah(p.price)}</td>
                     <td><span style="color: ${p.stock < 2 ? 'red' : 'black'}; font-weight: bold;">${p.stock}</span></td>
                     <td>${formatRupiah(profitPerUnit)}</td>
-                    <td><button class="btn-sm" onclick="deleteProduct(${index})">Hapus</button></td>
+                    <td>
+                        <button class="btn-sm btn-add-stock" onclick="addStockOnly(${index})">➕ Stok</button>
+                        <button class="btn-sm btn-edit" onclick="editProduct(${index})">✏️ Edit</button>
+                        <button class="btn-sm btn-danger" onclick="deleteProduct(${index})">Hapus</button>
+                    </td>
                 </tr>
             `;
         });
+    }
+
+    // Fungsi Tambah Stok Cepat saja
+    function addStockOnly(index) {
+        const p = products[index];
+        const thickStr = p.thickness && p.thickness !== '-' ? `, Tebal: ${p.thickness}` : '';
+        const inputStr = prompt(`Tambah Stok Masuk:\n"${p.name}" (Ukuran: ${p.size || '-'}${thickStr})\nStok saat ini: ${p.stock}\n\nMasukkan jumlah unit yang akan ditambahkan:`, '1');
+        
+        if (inputStr === null) return; // Pengguna menekan tombol Batal
+
+        const qtyToAdd = parseInt(inputStr);
+        if (isNaN(qtyToAdd) || qtyToAdd <= 0) {
+            alert('Jumlah stok harus berupa angka positif!');
+            return;
+        }
+
+        // Tambahkan stok ke produk
+        products[index].stock += qtyToAdd;
+
+        // Simpan langsung perubahan stok ke Cloud Firebase
+        db.ref('products').set(products);
+    }
+
+    // Fungsi Mengisi Form Otomatis Saat Tombol Edit Ditekan
+    function editProduct(index) {
+        editingIndex = index;
+        const p = products[index];
+
+        document.getElementById('prod-name').value = p.name;
+        document.getElementById('prod-size').value = p.size || '';
+        document.getElementById('prod-thick').value = p.thickness || '-';
+        document.getElementById('prod-cost').value = p.cost;
+        document.getElementById('prod-price').value = p.price;
+        document.getElementById('prod-stock').value = p.stock;
+
+        // Ubah Tampilan Tombol
+        document.getElementById('btn-submit-prod').innerText = '💾 Simpan Perubahan Produk';
+        document.getElementById('btn-cancel-edit').style.display = 'block';
+
+        // Scroll Halus ke Formulir
+        document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Fungsi Membatalkan Mode Edit
+    function cancelEdit() {
+        editingIndex = -1;
+        document.getElementById('product-form').reset();
+        document.getElementById('prod-thick').value = '-';
+        document.getElementById('btn-submit-prod').innerText = 'Tambah / Perbarui Stok Cloud';
+        document.getElementById('btn-cancel-edit').style.display = 'none';
     }
 
     document.getElementById('product-form').addEventListener('submit', function(e) {
@@ -265,29 +332,37 @@
         const price = parseFloat(document.getElementById('prod-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
 
-        const existingIndex = products.findIndex(p => 
-            p.name.toLowerCase() === name.toLowerCase() && 
-            p.size === size && 
-            (p.thickness || '-') === thickness
-        );
-
-        if (existingIndex > -1) {
-            products[existingIndex].cost = cost;
-            products[existingIndex].price = price;
-            products[existingIndex].stock += stock;
+        if (editingIndex > -1) {
+            // Mode Edit: Perbarui langsung data produk pada baris yang dipilih
+            products[editingIndex] = { name, size, thickness, cost, price, stock };
         } else {
-            products.push({ name, size, thickness, cost, price, stock });
+            // Mode Tambah Baru / Update Jika Nama, Ukuran & Ketebalan Sama
+            const existingIndex = products.findIndex(p => 
+                p.name.toLowerCase() === name.toLowerCase() && 
+                p.size === size && 
+                (p.thickness || '-') === thickness
+            );
+
+            if (existingIndex > -1) {
+                products[existingIndex].cost = cost;
+                products[existingIndex].price = price;
+                products[existingIndex].stock += stock;
+            } else {
+                products.push({ name, size, thickness, cost, price, stock });
+            }
         }
 
         // Simpan ke Firebase Realtime Database
         db.ref('products').set(products);
 
-        this.reset();
-        document.getElementById('prod-thick').value = '-';
+        cancelEdit();
     });
 
     function deleteProduct(index) {
         if (confirm('Hapus produk ini dari stok cloud?')) {
+            if (editingIndex === index) {
+                cancelEdit();
+            }
             products.splice(index, 1);
             db.ref('products').set(products);
         }

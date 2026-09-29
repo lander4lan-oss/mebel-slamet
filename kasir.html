@@ -15,6 +15,21 @@
         .btn-nav:hover { background: #1d4ed8; }
         .btn-logout { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .btn-logout:hover { background: #b91c1c; }
+        
+        /* Tombol Toggle Omzet & Laba */
+        .btn-toggle-stats { 
+            background: #475569; 
+            color: white; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+            transition: background 0.2s;
+        }
+        .btn-toggle-stats:hover { background: #334155; }
+
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .stat-card h3 { font-size: 0.85rem; color: #666; font-weight: normal; }
@@ -108,7 +123,15 @@
         </div>
     </header>
 
-    <div class="stats">
+    <!-- TOMBOL TAMPILKAN / SEMBUNYIKAN STATISTIK -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button type="button" class="btn-toggle-stats" id="btn-toggle-stats" onclick="toggleStats()">
+            👁️ Tampilkan Ringkasan Omzet & Laba
+        </button>
+    </div>
+
+    <!-- AREA STATISTIK (DEFAULT TERSEMBUNYI) -->
+    <div class="stats" id="stats-container" style="display: none;">
         <div class="stat-card">
             <h3>Total Omzet Penjualan</h3>
             <p id="stat-total-sales">Rp 0</p>
@@ -254,7 +277,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    // Konfigurasi Proyek Firebase Mebel Slamet
     const firebaseConfig = {
       apiKey: "AIzaSyDD-iw443ZBpvxtUkBMft6HISOAO6OPE6A",
       authDomain: "mebel-slamet.firebaseapp.com",
@@ -273,6 +296,20 @@
     let products = [];
     let sales = [];
     let cart = [];
+
+    // Fungsi Toggle Tampilkan / Sembunyikan Statistik Omzet
+    function toggleStats() {
+        const stats = document.getElementById('stats-container');
+        const btn = document.getElementById('btn-toggle-stats');
+
+        if (stats.style.display === 'none') {
+            stats.style.display = 'grid';
+            btn.innerHTML = '🙈 Sembunyikan Ringkasan Omzet & Laba';
+        } else {
+            stats.style.display = 'none';
+            btn.innerHTML = '👁️ Tampilkan Ringkasan Omzet & Laba';
+        }
+    }
 
     // Cek Status Login Pengguna
     auth.onAuthStateChanged((user) => {
