@@ -10,7 +10,10 @@
         .container { max-width: 1000px; margin: auto; }
         header { background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; position: relative; }
         header h1 { margin-bottom: 5px; }
-        .btn-logout { position: absolute; right: 15px; top: 15px; background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .header-nav { position: absolute; right: 15px; top: 15px; display: flex; gap: 8px; }
+        .btn-nav { background: #1e3a8a; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-nav:hover { background: #1d4ed8; }
+        .btn-logout { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .btn-logout:hover { background: #b91c1c; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -22,7 +25,8 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) { 
             .grid-3, .grid-2 { grid-template-columns: 1fr; } 
-            .btn-logout { position: static; margin-top: 10px; width: 100%; }
+            .header-nav { position: static; margin-top: 15px; flex-direction: column; width: 100%; }
+            .btn-nav, .btn-logout { width: 100%; text-align: center; }
         }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
@@ -48,7 +52,7 @@
         #login-screen h2 { color: #16a34a; margin-bottom: 8px; }
         #login-screen p { color: #666; font-size: 0.88rem; margin-bottom: 20px; }
 
-        /* Area Struk Thermal */
+        /* Area Struk Thermal (80mm) */
         #thermal-receipt { display: none; }
 
         @media print {
@@ -59,11 +63,11 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 58mm;
+                width: 80mm;
                 padding: 0;
                 margin: 0;
                 font-family: 'Courier New', Courier, monospace;
-                font-size: 8.5pt;
+                font-size: 9.5pt;
                 color: #000;
                 background: #fff;
             }
@@ -98,7 +102,10 @@
         <h1>Mebel Slamet Springbed</h1>
         <p>Aplikasi Kasir (Cloud Realtime Synchronized)</p>
         <p><small>Jln. Pahlawan Sunaryo no 355, 357 Pandaan | Telp/WA: 0812-3772-8500</small></p>
-        <button class="btn-logout" onclick="logout()">Keluar (Logout)</button>
+        <div class="header-nav">
+            <a href="stok.html" class="btn-nav">📦 Ke Manajemen Stok</a>
+            <button class="btn-logout" onclick="logout()">Keluar (Logout)</button>
+        </div>
     </header>
 
     <div class="stats">
@@ -195,46 +202,46 @@
     </div>
 </div>
 
-<!-- STRUK THERMAL (58mm) -->
+<!-- STRUK THERMAL (80mm) -->
 <div id="thermal-receipt">
-    <div style="text-align: center; font-weight: bold; font-size: 10pt;">MEBEL SLAMET SPRINGBED</div>
-    <div style="text-align: center; font-size: 8pt;">
+    <div style="text-align: center; font-weight: bold; font-size: 11pt;">MEBEL SLAMET SPRINGBED</div>
+    <div style="text-align: center; font-size: 9pt;">
         Jln. Pahlawan Sunaryo no 355, 357 Pandaan<br>
         Telp/WA: 0812-3772-8500
     </div>
-    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
     
-    <div style="font-size: 8pt;">
+    <div style="font-size: 9pt;">
         Tgl  : <span id="st-date"></span><br>
         No.  : #<span id="st-id"></span><br>
         Cst  : <span id="st-customer"></span>
     </div>
-    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
 
-    <div id="st-items-container" style="font-size: 8pt;"></div>
+    <div id="st-items-container" style="font-size: 9pt;"></div>
 
-    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
 
-    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 9pt;">
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10pt;">
         <span>TOTAL :</span>
         <span id="st-grand-total">Rp 0</span>
     </div>
-    <div style="display: flex; justify-content: space-between; font-size: 8pt;">
+    <div style="display: flex; justify-content: space-between; font-size: 9pt;">
         <span>STATUS:</span>
         <span id="st-status" style="font-weight: bold;">LUNAS</span>
     </div>
 
-    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
     
-    <div style="font-size: 8pt; text-align: center;">
+    <div style="font-size: 9pt; text-align: center;">
         <strong>REKENING TRANSFER:</strong><br>
         BCA: 199-111-3873<br>
         a.n Dian Pratiwi
     </div>
 
-    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
 
-    <div style="text-align: center; font-size: 8pt; margin-top: 4px;">
+    <div style="text-align: center; font-size: 9pt; margin-top: 5px;">
         *** TERIMA KASIH ***<br>
         Barang yang sudah dibeli<br>
         tidak dapat ditukar/dikembalikan
@@ -249,7 +256,7 @@
 <script>
     // Konfigurasi Proyek Firebase Mebel Slamet
     const firebaseConfig = {
-      apiKey: "AIzaSyDO-iw443Z8pvXtUKBNft6HISGAO60PE6A",
+      apiKey: "AIzaSyDD-iw443ZBpvxtUkBMft6HISOAO6OPE6A",
       authDomain: "mebel-slamet.firebaseapp.com",
       databaseURL: "https://mebel-slamet-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "mebel-slamet",

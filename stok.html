@@ -10,12 +10,16 @@
         .container { max-width: 1000px; margin: auto; }
         header { background: #1e3a8a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; position: relative; }
         header h1 { margin-bottom: 5px; }
-        .btn-logout { position: absolute; right: 15px; top: 15px; background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .header-nav { position: absolute; right: 15px; top: 15px; display: flex; gap: 8px; }
+        .btn-nav { background: #16a34a; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-nav:hover { background: #15803d; }
+        .btn-logout { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .btn-logout:hover { background: #b91c1c; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         @media (max-width: 768px) { 
             .grid-2 { grid-template-columns: 1fr; } 
-            .btn-logout { position: static; margin-top: 10px; width: 100%; }
+            .header-nav { position: static; margin-top: 15px; flex-direction: column; width: 100%; }
+            .btn-nav, .btn-logout { width: 100%; text-align: center; }
         }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .card h2 { margin-bottom: 15px; color: #1e3a8a; border-bottom: 2px solid #f4f7f6; padding-bottom: 8px; font-size: 1.1rem; }
@@ -64,7 +68,10 @@
         <h1>Mebel Slamet Springbed</h1>
         <p>Aplikasi Khusus Manajemen Stok Barang & Busa (Cloud Synchronized)</p>
         <small>Jln. Pahlawan Sunaryo no 355, 357 Pandaan | Telp/WA: 0812-3772-8500</small>
-        <button class="btn-logout" onclick="logout()">Keluar (Logout)</button>
+        <div class="header-nav">
+            <a href="kasir.html" class="btn-nav">🛒 Ke Kasir Penjualan</a>
+            <button class="btn-logout" onclick="logout()">Keluar (Logout)</button>
+        </div>
     </header>
 
     <div class="grid-2">
@@ -167,7 +174,7 @@
 <script>
     // Konfigurasi Proyek Firebase Mebel Slamet
     const firebaseConfig = {
-      apiKey: "AIzaSyDO-iw443Z8pvXtUKBNft6HISGAO60PE6A",
+      apiKey: "AIzaSyDD-iw443ZBpvxtUkBMft6HISOAO6OPE6A",
       authDomain: "mebel-slamet.firebaseapp.com",
       databaseURL: "https://mebel-slamet-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "mebel-slamet",
