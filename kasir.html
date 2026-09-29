@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir Penjualan - Mebel Slamet Springbed</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; }
+        header { background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        header h1 { margin-bottom: 5px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 0.85rem; color: #666; font-weight: normal; }
+        .stat-card p { font-size: 1.3rem; font-weight: bold; color: #16a34a; margin-top: 5px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { margin-bottom: 15px; color: #16a34a; border-bottom: 2px solid #f4f7f6; padding-bottom: 8px; font-size: 1.1rem; }
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+        
+        .btn-add { background: #0284c7; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
+        .btn-add:hover { background: #0369a1; }
+        .btn-process { background: #16a34a; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+        .btn-process:hover { background: #15803d; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
+        table th, table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+        table th { background: #f8fafc; color: #475569; }
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; width: auto; display: inline-block; margin-right: 2px; }
+        .btn-print { background: #0284c7; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-danger { background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+        .cart-table { margin-bottom: 15px; background: #fafafa; }
+        .cart-total { font-size: 1.1rem; font-weight: bold; text-align: right; margin-top: 10px; color: #16a34a; }
+
+        /* Area Struk Thermal (Tersembunyi di layar) */
+        #thermal-receipt { display: none; }
+
+        /* CSS PRINTER THERMAL (58mm) */
+        @media print {
+            body * { visibility: hidden; }
+            #thermal-receipt, #thermal-receipt * { visibility: visible; }
+            #thermal-receipt {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 58mm;
+                padding: 0;
+                margin: 0;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 8.5pt;
+                color: #000;
+                background: #fff;
+            }
+            @page { size: auto; margin: 0mm; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Mebel Slamet Springbed</h1>
+        <p>Aplikasi Kasir (Bisa Custom Harga Jual)</p>
+        <p><small>Jln. Pahlawan Sunaryo no 355, 357 Pandaan | Telp/WA: 0812-3772-8500</small></p>
+    </header>
+
+    <!-- Ringkasan Keuangan -->
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total Omzet Penjualan</h3>
+            <p id="stat-total-sales">Rp 0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Laba Bersih</h3>
+            <p id="stat-total-profit">Rp 0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Transaksi</h3>
+            <p id="stat-total-tx">0</p>
+        </div>
+    </div>
+
+    <!-- Form Transaksi Kasir -->
+    <div class="card">
+        <h2>🛒 Input Penjualan</h2>
+        
+        <!-- Bagian Input Barang & Costum Harga -->
+        <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>Pilih Produk (Dari Stok)</label>
+                    <select id="sale-product" onchange="autoFillPrice()">
+                        <option value="">-- Pilih Produk / Busa --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Harga Jual / Unit (Rp)</label>
+                    <input type="number" id="sale-price" placeholder="Dapat diubah">
+                </div>
+                <div class="form-group">
+                    <label>Jumlah (Unit)</label>
+                    <input type="number" id="sale-qty" min="1" value="1">
+                </div>
+            </div>
+            <button type="button" class="btn-add" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
+        </div>
+
+        <!-- Tabel Keranjang Belanja Sementara -->
+        <h3 style="font-size: 0.95rem; margin-bottom: 8px;">Daftar Barang yang Dibeli:</h3>
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Produk / Ukuran / Tebal</th>
+                    <th>Harga Kesepakatan</th>
+                    <th>Qty</th>
+                    <th>Subtotal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="cart-table-body">
+                <tr><td colspan="5" style="text-align: center; color: #888;">Keranjang masih kosong</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="cart-total">Total Belanja: <span id="cart-grand-total">Rp 0</span></div>
+
+        <!-- Form Info Pembeli & Pembayaran -->
+        <form id="sales-form" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nama Pembeli</label>
+                    <input type="text" id="sale-customer" placeholder="Contoh: Pak Budi" required>
+                </div>
+                <div class="form-group">
+                    <label>Status Pembayaran</label>
+                    <select id="sale-status">
+                        <option value="LUNAS">LUNAS</option>
+                        <option value="DP">DP (Uang Muka)</option>
+                        <option value="TRANSFER">TRANSFER BANK</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-process">Proses Transaksi & Cetak Struk</button>
+        </form>
+    </div>
+
+    <!-- Tabel Riwayat Penjualan -->
+    <div class="card">
+        <h2>📜 Riwayat Penjualan & Laporan Laba</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Pembeli</th>
+                        <th>Daftar Item Dibeli</th>
+                        <th>Total Omzet</th>
+                        <th>Status</th>
+                        <th class="no-print">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="sales-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- STRUK THERMAL (58mm) -->
+<div id="thermal-receipt">
+    <div style="text-align: center; font-weight: bold; font-size: 10pt;">MEBEL SLAMET SPRINGBED</div>
+    <div style="text-align: center; font-size: 8pt;">
+        Jln. Pahlawan Sunaryo no 355, 357 Pandaan<br>
+        Telp/WA: 0812-3772-8500
+    </div>
+    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    
+    <div style="font-size: 8pt;">
+        Tgl  : <span id="st-date"></span><br>
+        No.  : #<span id="st-id"></span><br>
+        Cst  : <span id="st-customer"></span>
+    </div>
+    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+
+    <div id="st-items-container" style="font-size: 8pt;"></div>
+
+    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 9pt;">
+        <span>TOTAL :</span>
+        <span id="st-grand-total">Rp 0</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 8pt;">
+        <span>STATUS:</span>
+        <span id="st-status" style="font-weight: bold;">LUNAS</span>
+    </div>
+
+    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+    
+    <div style="font-size: 8pt; text-align: center;">
+        <strong>REKENING TRANSFER:</strong><br>
+        BCA: 199-111-3873<br>
+        a.n Dian Pratiwi
+    </div>
+
+    <div style="border-bottom: 1px dashed #000; margin: 4px 0;"></div>
+
+    <div style="text-align: center; font-size: 8pt; margin-top: 4px;">
+        *** TERIMA KASIH ***<br>
+        Barang yang sudah dibeli<br>
+        tidak dapat ditukar/dikembalikan
+    </div>
+</div>
+
+<script>
+    let products = JSON.parse(localStorage.getItem('slamet_products')) || [];
+    let sales = JSON.parse(localStorage.getItem('slamet_sales')) || [];
+    let cart = [];
+
+    function formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+    }
+
+    function renderProductOptions() {
+        products = JSON.parse(localStorage.getItem('slamet_products')) || [];
+        const pSelect = document.getElementById('sale-product');
+        pSelect.innerHTML = '<option value="">-- Pilih Produk / Busa --</option>';
+
+        products.forEach((p, index) => {
+            if (p.stock > 0) {
+                const thickText = p.thickness && p.thickness !== '-' ? ` | T:${p.thickness}` : '';
+                pSelect.innerHTML += `<option value="${index}">${p.name} [${p.size || '-'}${thickText}] (Stok: ${p.stock})</option>`;
+            }
+        });
+    }
+
+    // Mengisi otomatis harga standar saat produk dipilih (namun tetap bisa diubah manual)
+    function autoFillPrice() {
+        const pIndex = document.getElementById('sale-product').value;
+        if (pIndex !== "") {
+            document.getElementById('sale-price').value = products[pIndex].price;
+        } else {
+            document.getElementById('sale-price').value = '';
+        }
+    }
+
+    function addToCart() {
+        const pIndex = document.getElementById('sale-product').value;
+        const customPrice = parseFloat(document.getElementById('sale-price').value);
+        const qty = parseInt(document.getElementById('sale-qty').value);
+
+        if (pIndex === "" || isNaN(customPrice) || customPrice < 0 || isNaN(qty) || qty < 1) {
+            alert('Pilih produk, masukkan harga jual, dan jumlah unit yang valid!');
+            return;
+        }
+
+        const product = products[pIndex];
+
+        // Cek stok tersedia
+        const existingCartItem = cart.find(item => item.productIndex === pIndex && item.price === customPrice);
+        const currentQtyInCart = cart.filter(item => item.productIndex === pIndex).reduce((sum, item) => sum + item.qty, 0);
+
+        if (qty + currentQtyInCart > product.stock) {
+            alert(`Stok tidak mencukupi! Stok tersisa: ${product.stock}`);
+            return;
+        }
+
+        if (existingCartItem) {
+            existingCartItem.qty += qty;
+            existingCartItem.subtotal = existingCartItem.qty * existingCartItem.price;
+            existingCartItem.totalCost = existingCartItem.qty * existingCartItem.cost;
+        } else {
+            cart.push({
+                productIndex: pIndex,
+                name: product.name,
+                size: product.size || '-',
+                thickness: product.thickness || '-',
+                price: customPrice, // Menggunakan harga jual khusus/kesepakatan
+                cost: product.cost, // Menggunakan modal asli
+                qty: qty,
+                subtotal: customPrice * qty,
+                totalCost: product.cost * qty
+            });
+        }
+
+        document.getElementById('sale-qty').value = 1;
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        const cTable = document.getElementById('cart-table-body');
+        cTable.innerHTML = '';
+
+        if (cart.length === 0) {
+            cTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">Keranjang masih kosong</td></tr>';
+            document.getElementById('cart-grand-total').innerText = formatRupiah(0);
+            return;
+        }
+
+        let grandTotal = 0;
+        cart.forEach((item, index) => {
+            grandTotal += item.subtotal;
+            const thickStr = item.thickness && item.thickness !== '-' ? `, T:${item.thickness}` : '';
+            cTable.innerHTML += `
+                <tr>
+                    <td><strong>${item.name}</strong> (${item.size}${thickStr})</td>
+                    <td>${formatRupiah(item.price)}</td>
+                    <td>${item.qty}</td>
+                    <td>${formatRupiah(item.subtotal)}</td>
+                    <td><button type="button" class="btn-sm btn-danger" onclick="removeFromCart(${index})">X</button></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('cart-grand-total').innerText = formatRupiah(grandTotal);
+    }
+
+    function renderSales() {
+        const sTable = document.getElementById('sales-table-body');
+        sTable.innerHTML = '';
+
+        sales.forEach((s, index) => {
+            let itemListHtml = '<ul style="padding-left: 15px; margin: 0;">';
+            s.items.forEach(item => {
+                const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
+                itemListHtml += `<li>${item.name} (${item.size}${thickStr}) x ${item.qty} @ ${formatRupiah(item.price)}</li>`;
+            });
+            itemListHtml += '</ul>';
+
+            sTable.innerHTML += `
+                <tr>
+                    <td>${s.date}</td>
+                    <td><strong>${s.customerName}</strong></td>
+                    <td>${itemListHtml}</td>
+                    <td>${formatRupiah(s.totalSales)}</td>
+                    <td><span style="color: ${s.status === 'LUNAS' || s.status === 'TRANSFER' ? '#16a34a' : '#d97706'}; font-weight:bold;">${s.status}</span></td>
+                    <td class="no-print">
+                        <button class="btn-sm btn-print" onclick="printReceipt(${index})">🖨️ Struk</button>
+                        <button class="btn-sm btn-danger" onclick="deleteSale(${index})">Hapus</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderStats() {
+        const totalSales = sales.reduce((acc, curr) => acc + curr.totalSales, 0);
+        const totalProfit = sales.reduce((acc, curr) => acc + curr.totalProfit, 0);
+
+        document.getElementById('stat-total-sales').innerText = formatRupiah(totalSales);
+        document.getElementById('stat-total-profit').innerText = formatRupiah(totalProfit);
+        document.getElementById('stat-total-tx').innerText = sales.length;
+    }
+
+    document.getElementById('sales-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (cart.length === 0) {
+            alert('Keranjang belanja masih kosong!');
+            return;
+        }
+
+        const customerName = document.getElementById('sale-customer').value.trim();
+        const status = document.getElementById('sale-status').value;
+
+        let totalSales = 0;
+        let totalCost = 0;
+
+        cart.forEach(cartItem => {
+            totalSales += cartItem.subtotal;
+            totalCost += cartItem.totalCost;
+            
+            const p = products[cartItem.productIndex];
+            if (p) {
+                p.stock -= cartItem.qty;
+            }
+        });
+
+        const totalProfit = totalSales - totalCost;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+
+        const newSale = {
+            id: Date.now().toString().slice(-6),
+            items: [...cart],
+            totalSales: totalSales,
+            totalCost: totalCost,
+            totalProfit: totalProfit,
+            customerName: customerName,
+            status: status,
+            date: dateStr
+        };
+
+        sales.unshift(newSale);
+
+        localStorage.setItem('slamet_products', JSON.stringify(products));
+        localStorage.setItem('slamet_sales', JSON.stringify(sales));
+
+        cart = [];
+        this.reset();
+        document.getElementById('sale-price').value = '';
+
+        renderCart();
+        renderProductOptions();
+        renderSales();
+        renderStats();
+
+        printReceipt(0);
+    });
+
+    function deleteSale(index) {
+        if (confirm('Hapus riwayat transaksi ini?')) {
+            sales.splice(index, 1);
+            localStorage.setItem('slamet_sales', JSON.stringify(sales));
+            renderSales();
+            renderStats();
+        }
+    }
+
+    function printReceipt(index) {
+        const s = sales[index];
+        document.getElementById('st-id').innerText = s.id;
+        document.getElementById('st-date').innerText = s.date;
+        document.getElementById('st-customer').innerText = s.customerName;
+
+        const itemsContainer = document.getElementById('st-items-container');
+        itemsContainer.innerHTML = '';
+
+        s.items.forEach(item => {
+            const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
+            itemsContainer.innerHTML += `
+                <div style="margin-bottom: 4px;">
+                    <div style="font-weight: bold;">${item.name} (${item.size}${thickStr})</div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${item.qty} x ${formatRupiah(item.price)}</span>
+                        <span>${formatRupiah(item.subtotal)}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        document.getElementById('st-grand-total').innerText = formatRupiah(s.totalSales);
+        document.getElementById('st-status').innerText = s.status;
+
+        window.print();
+    }
+
+    window.addEventListener('storage', () => {
+        renderProductOptions();
+    });
+
+    renderProductOptions();
+    renderSales();
+    renderStats();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Stok - Mebel Slamet Springbed</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; }
+        header { background: #1e3a8a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        header h1 { margin-bottom: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { margin-bottom: 15px; color: #1e3a8a; border-bottom: 2px solid #f4f7f6; padding-bottom: 8px; font-size: 1.1rem; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
+        table th, table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+        table th { background: #f8fafc; color: #475569; }
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; width: auto; display: inline-block; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-sm:hover { background: #b91c1c; }
+        .badge-size { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
+        .badge-thick { background-color: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Mebel Slamet Springbed</h1>
+        <p>Aplikasi Khusus Manajemen Stok Barang & Busa</p>
+        <small>Jln. Pahlawan Sunaryo no 355, 357 Pandaan | Telp/WA: 0812-3772-8500</small>
+    </header>
+
+    <div class="grid-2">
+        <!-- Form Input Stok -->
+        <div class="card">
+            <h2>📦 Input / Update Stok Produk</h2>
+            <form id="product-form">
+                <div class="form-group">
+                    <label>Nama Produk / Busa / Springbed</label>
+                    <input type="text" id="prod-name" placeholder="Contoh: Busa Inoac / Central Deluxe" required>
+                </div>
+                <div class="form-group">
+                    <label>Ukuran Dimensi (P x L)</label>
+                    <select id="prod-size" required>
+                        <option value="">-- Pilih Ukuran --</option>
+                        <option value="90x200 (No.4)">90 x 200 (No. 4 - Single)</option>
+                        <option value="100x200 (No.4S)">100 x 200 (No. 4 Super)</option>
+                        <option value="120x200 (No.3)">120 x 200 (No. 3 - Double)</option>
+                        <option value="140x200 (Khusus)">140 x 200 (Ukuran Sedang / Khusus)</option>
+                        <option value="160x200 (No.2)">160 x 200 (No. 2 - Queen)</option>
+                        <option value="180x200 (No.1)">180 x 200 (No. 1 - King)</option>
+                        <option value="200x200 (SuperKing)">200 x 200 (Super King)</option>
+                        <option value="Khusus">Ukuran Khusus Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ketebalan / Tinggi Busa</label>
+                    <select id="prod-thick">
+                        <option value="-">-- Pilih Ketebalan (Opsional) --</option>
+                        <option value="15 cm">Tebal 15 cm</option>
+                        <option value="20 cm">Tebal 20 cm</option>
+                        <option value="25 cm">Tebal 25 cm</option>
+                        <option value="30 cm">Tebal 30 cm</option>
+                        <option value="Standard Springbed">Standard Springbed</option>
+                        <option value="Khusus">Ketebalan Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Harga Modal / Beli (Rp)</label>
+                    <input type="number" id="prod-cost" placeholder="1200000" required>
+                </div>
+                <div class="form-group">
+                    <label>Harga Jual (Rp)</label>
+                    <input type="number" id="prod-price" placeholder="1750000" required>
+                </div>
+                <div class="form-group">
+                    <label>Jumlah Stok</label>
+                    <input type="number" id="prod-stock" placeholder="5" required>
+                </div>
+                <button type="submit">Tambah / Perbarui Stok</button>
+            </form>
+        </div>
+
+        <!-- Panduan Ukuran & Ketebalan -->
+        <div class="card">
+            <h2>📏 Panduan Dimensi & Ketebalan Busa</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ukuran (cm)</th>
+                        <th>Standard Ketebalan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>90 x 200 (No. 4)</td><td><span class="badge-thick">15 cm</span> <span class="badge-thick">20 cm</span></td></tr>
+                    <tr><td>120 x 200 (No. 3)</td><td><span class="badge-thick">15 cm</span> <span class="badge-thick">20 cm</span> <span class="badge-thick">30 cm</span></td></tr>
+                    <tr><td>140 x 200 (Khusus)</td><td><span class="badge-thick">15 cm</span> <span class="badge-thick">20 cm</span> <span class="badge-thick">30 cm</span></td></tr>
+                    <tr><td>160 x 200 (No. 2)</td><td><span class="badge-thick">20 cm</span> <span class="badge-thick">30 cm</span></td></tr>
+                    <tr><td>180 x 200 (No. 1)</td><td><span class="badge-thick">20 cm</span> <span class="badge-thick">30 cm</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tabel Daftar Stok -->
+    <div class="card">
+        <h2>📋 Daftar Stok Produk & Busa Saat Ini</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Produk</th>
+                        <th>Ukuran</th>
+                        <th>Ketebalan</th>
+                        <th>Harga Modal</th>
+                        <th>Harga Jual</th>
+                        <th>Stok</th>
+                        <th>Laba/Unit</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let products = JSON.parse(localStorage.getItem('slamet_products')) || [];
+
+    function formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+    }
+
+    function renderProducts() {
+        const pTable = document.getElementById('product-table-body');
+        pTable.innerHTML = '';
+
+        products.forEach((p, index) => {
+            const profitPerUnit = p.price - p.cost;
+            const thicknessDisplay = p.thickness && p.thickness !== '-' ? `<span class="badge-thick">${p.thickness}</span>` : '-';
+            pTable.innerHTML += `
+                <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td><span class="badge-size">${p.size || '-'}</span></td>
+                    <td>${thicknessDisplay}</td>
+                    <td>${formatRupiah(p.cost)}</td>
+                    <td>${formatRupiah(p.price)}</td>
+                    <td><span style="color: ${p.stock < 2 ? 'red' : 'black'}; font-weight: bold;">${p.stock}</span></td>
+                    <td>${formatRupiah(profitPerUnit)}</td>
+                    <td><button class="btn-sm" onclick="deleteProduct(${index})">Hapus</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('prod-name').value.trim();
+        const size = document.getElementById('prod-size').value;
+        const thickness = document.getElementById('prod-thick').value;
+        const cost = parseFloat(document.getElementById('prod-cost').value);
+        const price = parseFloat(document.getElementById('prod-price').value);
+        const stock = parseInt(document.getElementById('prod-stock').value);
+
+        const existingIndex = products.findIndex(p => 
+            p.name.toLowerCase() === name.toLowerCase() && 
+            p.size === size && 
+            (p.thickness || '-') === thickness
+        );
+
+        if (existingIndex > -1) {
+            products[existingIndex].cost = cost;
+            products[existingIndex].price = price;
+            products[existingIndex].stock += stock;
+        } else {
+            products.push({ name, size, thickness, cost, price, stock });
+        }
+
+        localStorage.setItem('slamet_products', JSON.stringify(products));
+        this.reset();
+        document.getElementById('prod-thick').value = '-';
+        renderProducts();
+    });
+
+    function deleteProduct(index) {
+        if (confirm('Hapus produk ini dari stok?')) {
+            products.splice(index, 1);
+            localStorage.setItem('slamet_products', JSON.stringify(products));
+            renderProducts();
+        }
+    }
+
+    window.addEventListener('storage', () => {
+        products = JSON.parse(localStorage.getItem('slamet_products')) || [];
+        renderProducts();
+    });
+
+    renderProducts();
+</script>
+
+</body>
+</html>
