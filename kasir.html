@@ -8,8 +8,10 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 1000px; margin: auto; }
-        header { background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        header { background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; position: relative; }
         header h1 { margin-bottom: 5px; }
+        .btn-logout { position: absolute; right: 15px; top: 15px; background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-logout:hover { background: #b91c1c; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .stat-card h3 { font-size: 0.85rem; color: #666; font-weight: normal; }
@@ -18,7 +20,10 @@
         .card h2 { margin-bottom: 15px; color: #16a34a; border-bottom: 2px solid #f4f7f6; padding-bottom: 8px; font-size: 1.1rem; }
         .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .grid-3, .grid-2 { grid-template-columns: 1fr; } 
+            .btn-logout { position: static; margin-top: 10px; width: 100%; }
+        }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
         .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
@@ -38,10 +43,14 @@
         .cart-table { margin-bottom: 15px; background: #fafafa; }
         .cart-total { font-size: 1.1rem; font-weight: bold; text-align: right; margin-top: 10px; color: #16a34a; }
 
-        /* Area Struk Thermal (Tersembunyi di layar) */
+        /* Form Login */
+        #login-screen { max-width: 380px; margin: 80px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
+        #login-screen h2 { color: #16a34a; margin-bottom: 8px; }
+        #login-screen p { color: #666; font-size: 0.88rem; margin-bottom: 20px; }
+
+        /* Area Struk Thermal */
         #thermal-receipt { display: none; }
 
-        /* CSS PRINTER THERMAL (58mm) */
         @media print {
             body * { visibility: hidden; }
             #thermal-receipt, #thermal-receipt * { visibility: visible; }
@@ -65,14 +74,33 @@
 </head>
 <body>
 
-<div class="container">
+<!-- TAMPILAN LOGIN -->
+<div id="login-screen">
+    <h2>Login Kasir Penjualan</h2>
+    <p>Mebel Slamet Springbed</p>
+    <form id="login-form">
+        <div class="form-group" style="text-align: left;">
+            <label>Email Kasir</label>
+            <input type="email" id="login-email" placeholder="kasir@mebelslamet.com" required>
+        </div>
+        <div class="form-group" style="text-align: left;">
+            <label>Kata Sandi</label>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-process">Masuk Aplikasi</button>
+    </form>
+    <p id="login-error" style="color: red; margin-top: 15px; display: none; font-size: 0.85rem;"></p>
+</div>
+
+<!-- TAMPILAN APLIKASI KASIR (Tersembunyi Sebelum Login) -->
+<div id="app-content" class="container" style="display: none;">
     <header>
         <h1>Mebel Slamet Springbed</h1>
-        <p>Aplikasi Kasir (Bisa Custom Harga Jual)</p>
+        <p>Aplikasi Kasir (Cloud Realtime Synchronized)</p>
         <p><small>Jln. Pahlawan Sunaryo no 355, 357 Pandaan | Telp/WA: 0812-3772-8500</small></p>
+        <button class="btn-logout" onclick="logout()">Keluar (Logout)</button>
     </header>
 
-    <!-- Ringkasan Keuangan -->
     <div class="stats">
         <div class="stat-card">
             <h3>Total Omzet Penjualan</h3>
@@ -88,11 +116,8 @@
         </div>
     </div>
 
-    <!-- Form Transaksi Kasir -->
     <div class="card">
         <h2>🛒 Input Penjualan</h2>
-        
-        <!-- Bagian Input Barang & Costum Harga -->
         <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
             <div class="grid-3">
                 <div class="form-group">
@@ -113,7 +138,6 @@
             <button type="button" class="btn-add" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
         </div>
 
-        <!-- Tabel Keranjang Belanja Sementara -->
         <h3 style="font-size: 0.95rem; margin-bottom: 8px;">Daftar Barang yang Dibeli:</h3>
         <table class="cart-table">
             <thead>
@@ -132,7 +156,6 @@
         
         <div class="cart-total">Total Belanja: <span id="cart-grand-total">Rp 0</span></div>
 
-        <!-- Form Info Pembeli & Pembayaran -->
         <form id="sales-form" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
             <div class="grid-2">
                 <div class="form-group">
@@ -152,7 +175,6 @@
         </form>
     </div>
 
-    <!-- Tabel Riwayat Penjualan -->
     <div class="card">
         <h2>📜 Riwayat Penjualan & Laporan Laba</h2>
         <div style="overflow-x: auto;">
@@ -219,17 +241,86 @@
     </div>
 </div>
 
+<!-- SDK FIREBASE BASE & AUTH & DATABASE -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
 <script>
-    let products = JSON.parse(localStorage.getItem('slamet_products')) || [];
-    let sales = JSON.parse(localStorage.getItem('slamet_sales')) || [];
+    // Konfigurasi Proyek Firebase Mebel Slamet
+    const firebaseConfig = {
+      apiKey: "AIzaSyDO-iw443Z8pvXtUKBNft6HISGAO60PE6A",
+      authDomain: "mebel-slamet.firebaseapp.com",
+      databaseURL: "https://mebel-slamet-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mebel-slamet",
+      storageBucket: "mebel-slamet.firebasestorage.app",
+      messagingSenderId: "238834704773",
+      appId: "1:238834704773:web:ac74bb44cd385b504f64ec",
+      measurementId: "G-9SRWFK7R9S"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let products = [];
+    let sales = [];
     let cart = [];
+
+    // Cek Status Login Pengguna
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            listenCloudData();
+        } else {
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+        }
+    });
+
+    // Process Form Login
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => { errorEl.style.display = 'none'; })
+            .catch((err) => {
+                errorEl.innerText = "Gagal login! Periksa email dan password.";
+                errorEl.style.display = 'block';
+            });
+    });
+
+    function logout() {
+        auth.signOut();
+    }
+
+    // Sinkronisasi Data Realtime dari Firebase Cloud
+    function listenCloudData() {
+        // Mendengar perubahan Produk/Stok
+        db.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            products = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+            renderProductOptions();
+        });
+
+        // Mendengar perubahan Penjualan/Transaksi
+        db.ref('sales').on('value', (snapshot) => {
+            const data = snapshot.val();
+            sales = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+            renderSales();
+            renderStats();
+        });
+    }
 
     function formatRupiah(number) {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
     }
 
     function renderProductOptions() {
-        products = JSON.parse(localStorage.getItem('slamet_products')) || [];
         const pSelect = document.getElementById('sale-product');
         pSelect.innerHTML = '<option value="">-- Pilih Produk / Busa --</option>';
 
@@ -241,7 +332,6 @@
         });
     }
 
-    // Mengisi otomatis harga standar saat produk dipilih (namun tetap bisa diubah manual)
     function autoFillPrice() {
         const pIndex = document.getElementById('sale-product').value;
         if (pIndex !== "") {
@@ -263,7 +353,6 @@
 
         const product = products[pIndex];
 
-        // Cek stok tersedia
         const existingCartItem = cart.find(item => item.productIndex === pIndex && item.price === customPrice);
         const currentQtyInCart = cart.filter(item => item.productIndex === pIndex).reduce((sum, item) => sum + item.qty, 0);
 
@@ -282,8 +371,8 @@
                 name: product.name,
                 size: product.size || '-',
                 thickness: product.thickness || '-',
-                price: customPrice, // Menggunakan harga jual khusus/kesepakatan
-                cost: product.cost, // Menggunakan modal asli
+                price: customPrice,
+                cost: product.cost,
                 qty: qty,
                 subtotal: customPrice * qty,
                 totalCost: product.cost * qty
@@ -333,10 +422,12 @@
 
         sales.forEach((s, index) => {
             let itemListHtml = '<ul style="padding-left: 15px; margin: 0;">';
-            s.items.forEach(item => {
-                const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
-                itemListHtml += `<li>${item.name} (${item.size}${thickStr}) x ${item.qty} @ ${formatRupiah(item.price)}</li>`;
-            });
+            if (s.items && Array.isArray(s.items)) {
+                s.items.forEach(item => {
+                    const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
+                    itemListHtml += `<li>${item.name} (${item.size}${thickStr}) x ${item.qty} @ ${formatRupiah(item.price)}</li>`;
+                });
+            }
             itemListHtml += '</ul>';
 
             sTable.innerHTML += `
@@ -356,8 +447,8 @@
     }
 
     function renderStats() {
-        const totalSales = sales.reduce((acc, curr) => acc + curr.totalSales, 0);
-        const totalProfit = sales.reduce((acc, curr) => acc + curr.totalProfit, 0);
+        const totalSales = sales.reduce((acc, curr) => acc + (curr.totalSales || 0), 0);
+        const totalProfit = sales.reduce((acc, curr) => acc + (curr.totalProfit || 0), 0);
 
         document.getElementById('stat-total-sales').innerText = formatRupiah(totalSales);
         document.getElementById('stat-total-profit').innerText = formatRupiah(totalProfit);
@@ -405,32 +496,29 @@
 
         sales.unshift(newSale);
 
-        localStorage.setItem('slamet_products', JSON.stringify(products));
-        localStorage.setItem('slamet_sales', JSON.stringify(sales));
+        // Simpan Pembaruan Stok dan Transaksi Baru ke Cloud Firebase
+        db.ref('products').set(products);
+        db.ref('sales').set(sales);
 
         cart = [];
         this.reset();
         document.getElementById('sale-price').value = '';
 
         renderCart();
-        renderProductOptions();
-        renderSales();
-        renderStats();
-
         printReceipt(0);
     });
 
     function deleteSale(index) {
-        if (confirm('Hapus riwayat transaksi ini?')) {
+        if (confirm('Hapus riwayat transaksi ini dari Cloud?')) {
             sales.splice(index, 1);
-            localStorage.setItem('slamet_sales', JSON.stringify(sales));
-            renderSales();
-            renderStats();
+            db.ref('sales').set(sales);
         }
     }
 
     function printReceipt(index) {
         const s = sales[index];
+        if(!s) return;
+        
         document.getElementById('st-id').innerText = s.id;
         document.getElementById('st-date').innerText = s.date;
         document.getElementById('st-customer').innerText = s.customerName;
@@ -438,32 +526,26 @@
         const itemsContainer = document.getElementById('st-items-container');
         itemsContainer.innerHTML = '';
 
-        s.items.forEach(item => {
-            const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
-            itemsContainer.innerHTML += `
-                <div style="margin-bottom: 4px;">
-                    <div style="font-weight: bold;">${item.name} (${item.size}${thickStr})</div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${item.qty} x ${formatRupiah(item.price)}</span>
-                        <span>${formatRupiah(item.subtotal)}</span>
+        if(s.items && Array.isArray(s.items)) {
+            s.items.forEach(item => {
+                const thickStr = item.thickness && item.thickness !== '-' ? ` T:${item.thickness}` : '';
+                itemsContainer.innerHTML += `
+                    <div style="margin-bottom: 4px;">
+                        <div style="font-weight: bold;">${item.name} (${item.size}${thickStr})</div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${item.qty} x ${formatRupiah(item.price)}</span>
+                            <span>${formatRupiah(item.subtotal)}</span>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
 
         document.getElementById('st-grand-total').innerText = formatRupiah(s.totalSales);
         document.getElementById('st-status').innerText = s.status;
 
         window.print();
     }
-
-    window.addEventListener('storage', () => {
-        renderProductOptions();
-    });
-
-    renderProductOptions();
-    renderSales();
-    renderStats();
 </script>
 
 </body>
