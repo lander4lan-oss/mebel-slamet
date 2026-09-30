@@ -16,17 +16,9 @@
         .btn-logout { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .btn-logout:hover { background: #b91c1c; }
         
-        /* Tombol Toggle Omzet & Laba */
         .btn-toggle-stats { 
-            background: #475569; 
-            color: white; 
-            border: none; 
-            padding: 10px 18px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-            transition: background 0.2s;
+            background: #475569; color: white; border: none; padding: 10px 18px; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s;
         }
         .btn-toggle-stats:hover { background: #334155; }
 
@@ -36,7 +28,8 @@
         .stat-card p { font-size: 1.3rem; font-weight: bold; color: #16a34a; margin-top: 5px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .card h2 { margin-bottom: 15px; color: #16a34a; border-bottom: 2px solid #f4f7f6; padding-bottom: 8px; font-size: 1.1rem; }
-        .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+        
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) { 
             .grid-3, .grid-2 { grid-template-columns: 1fr; } 
@@ -46,7 +39,8 @@
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
         .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
-        
+        .form-group select:disabled { background: #e2e8f0; cursor: not-allowed; }
+
         .btn-add { background: #0284c7; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
         .btn-add:hover { background: #0369a1; }
         .btn-process { background: #16a34a; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; margin-top: 10px; }
@@ -74,17 +68,8 @@
             body * { visibility: hidden; }
             #thermal-receipt, #thermal-receipt * { visibility: visible; }
             #thermal-receipt {
-                display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 80mm;
-                padding: 0;
-                margin: 0;
-                font-family: 'Courier New', Courier, monospace;
-                font-size: 9.5pt;
-                color: #000;
-                background: #fff;
+                display: block !important; position: absolute; left: 0; top: 0; width: 80mm;
+                padding: 0; margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; color: #000; background: #fff;
             }
             @page { size: auto; margin: 0mm; }
             .no-print { display: none !important; }
@@ -111,7 +96,7 @@
     <p id="login-error" style="color: red; margin-top: 15px; display: none; font-size: 0.85rem;"></p>
 </div>
 
-<!-- TAMPILAN APLIKASI KASIR (Tersembunyi Sebelum Login) -->
+<!-- TAMPILAN APLIKASI KASIR -->
 <div id="app-content" class="container" style="display: none;">
     <header>
         <h1>Mebel Slamet Springbed</h1>
@@ -123,14 +108,12 @@
         </div>
     </header>
 
-    <!-- TOMBOL TAMPILKAN / SEMBUNYIKAN STATISTIK -->
     <div style="text-align: center; margin-bottom: 20px;">
         <button type="button" class="btn-toggle-stats" id="btn-toggle-stats" onclick="toggleStats()">
             👁️ Tampilkan Ringkasan Omzet & Laba
         </button>
     </div>
 
-    <!-- AREA STATISTIK (DEFAULT TERSEMBUNYI) -->
     <div class="stats" id="stats-container" style="display: none;">
         <div class="stat-card">
             <h3>Total Omzet Penjualan</h3>
@@ -149,13 +132,30 @@
     <div class="card">
         <h2>🛒 Input Penjualan</h2>
         <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-            <div class="grid-3">
+            
+            <!-- SELEKSI Tiga Lapis (Nama Produk -> Ukuran -> Ketebalan) -->
+            <div class="grid-3" style="margin-bottom: 10px;">
                 <div class="form-group">
-                    <label>Pilih Produk (Dari Stok)</label>
-                    <select id="sale-product" onchange="autoFillPrice()">
-                        <option value="">-- Pilih Produk / Busa --</option>
+                    <label>1. Nama Produk / Busa</label>
+                    <select id="sale-prod-name" onchange="onKasirNameChange()">
+                        <option value="">-- Pilih Nama Produk --</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>2. Ukuran Produk</label>
+                    <select id="sale-prod-size" onchange="onKasirSizeChange()" disabled>
+                        <option value="">-- Pilih Ukuran --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>3. Ketebalan Busa</label>
+                    <select id="sale-prod-thick" onchange="onKasirThickChange()" disabled>
+                        <option value="">-- Pilih Ketebalan --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
                 <div class="form-group">
                     <label>Harga Jual / Unit (Rp)</label>
                     <input type="number" id="sale-price" placeholder="Dapat diubah">
@@ -165,6 +165,7 @@
                     <input type="number" id="sale-qty" min="1" value="1">
                 </div>
             </div>
+            
             <button type="button" class="btn-add" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
         </div>
 
@@ -271,13 +272,11 @@
     </div>
 </div>
 
-<!-- SDK FIREBASE BASE & AUTH & DATABASE -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <script>
-    // Konfigurasi Proyek Firebase Mebel Slamet
     const firebaseConfig = {
       apiKey: "AIzaSyAJk0rBzYGNgcGTZQuleVPQU5QD7tKcEHk",
       authDomain: "mebel-slamet.firebaseapp.com",
@@ -296,8 +295,8 @@
     let products = [];
     let sales = [];
     let cart = [];
+    let selectedProductIndex = -1; // Menyimpan index produk teridentifikasi
 
-    // Fungsi Toggle Tampilkan / Sembunyikan Statistik Omzet
     function toggleStats() {
         const stats = document.getElementById('stats-container');
         const btn = document.getElementById('btn-toggle-stats');
@@ -311,7 +310,6 @@
         }
     }
 
-    // Cek Status Login Pengguna
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('login-screen').style.display = 'none';
@@ -323,7 +321,6 @@
         }
     });
 
-    // Process Form Login
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
@@ -338,20 +335,15 @@
             });
     });
 
-    function logout() {
-        auth.signOut();
-    }
+    function logout() { auth.signOut(); }
 
-    // Sinkronisasi Data Realtime dari Firebase Cloud
     function listenCloudData() {
-        // Mendengar perubahan Produk/Stok
         db.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
             renderProductOptions();
         });
 
-        // Mendengar perubahan Penjualan/Transaksi
         db.ref('sales').on('value', (snapshot) => {
             const data = snapshot.val();
             sales = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
@@ -364,41 +356,123 @@
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
     }
 
+    // 1. Mengisi Opsi Nama Produk Unik (Hanya yang Memiliki Stok > 0)
     function renderProductOptions() {
-        const pSelect = document.getElementById('sale-product');
-        pSelect.innerHTML = '<option value="">-- Pilih Produk / Busa --</option>';
+        const nameSelect = document.getElementById('sale-prod-name');
+        nameSelect.innerHTML = '<option value="">-- Pilih Nama Produk --</option>';
 
-        products.forEach((p, index) => {
-            if (p.stock > 0) {
-                const thickText = p.thickness && p.thickness !== '-' ? ` | T:${p.thickness}` : '';
-                pSelect.innerHTML += `<option value="${index}">${p.name} [${p.size || '-'}${thickText}] (Stok: ${p.stock})</option>`;
-            }
+        const availableProducts = products.filter(p => p.stock > 0);
+        const uniqueNames = [...new Set(availableProducts.map(p => p.name.trim()))].sort((a,b) => a.localeCompare(b, 'id'));
+
+        uniqueNames.forEach(name => {
+            nameSelect.innerHTML += `<option value="${name}">${name}</option>`;
         });
+
+        resetCascadingOptions();
     }
 
-    function autoFillPrice() {
-        const pIndex = document.getElementById('sale-product').value;
-        if (pIndex !== "") {
-            document.getElementById('sale-price').value = products[pIndex].price;
+    function resetCascadingOptions() {
+        selectedProductIndex = -1;
+        const sizeSelect = document.getElementById('sale-prod-size');
+        const thickSelect = document.getElementById('sale-prod-thick');
+        
+        sizeSelect.innerHTML = '<option value="">-- Pilih Ukuran --</option>';
+        sizeSelect.disabled = true;
+        thickSelect.innerHTML = '<option value="">-- Pilih Ketebalan --</option>';
+        thickSelect.disabled = true;
+        document.getElementById('sale-price').value = '';
+    }
+
+    // 2. Ketiak Nama Produk Dipilih -> Isi Ukuran yang Tersedia
+    function onKasirNameChange() {
+        const selectedName = document.getElementById('sale-prod-name').value;
+        const sizeSelect = document.getElementById('sale-prod-size');
+        
+        resetCascadingOptions();
+
+        if (!selectedName) return;
+
+        const filteredByStock = products.filter(p => p.name.trim() === selectedName && p.stock > 0);
+        const uniqueSizes = [...new Set(filteredByStock.map(p => p.size || '-'))];
+
+        sizeSelect.innerHTML = '<option value="">-- Pilih Ukuran --</option>';
+        uniqueSizes.forEach(size => {
+            sizeSelect.innerHTML += `<option value="${size}">${size}</option>`;
+        });
+        sizeSelect.disabled = false;
+    }
+
+    // 3. Ketika Ukuran Dipilih -> Isi Ketebalan yang Tersedia
+    function onKasirSizeChange() {
+        const selectedName = document.getElementById('sale-prod-name').value;
+        const selectedSize = document.getElementById('sale-prod-size').value;
+        const thickSelect = document.getElementById('sale-prod-thick');
+
+        selectedProductIndex = -1;
+        document.getElementById('sale-price').value = '';
+        thickSelect.innerHTML = '<option value="">-- Pilih Ketebalan --</option>';
+
+        if (!selectedSize) {
+            thickSelect.disabled = true;
+            return;
+        }
+
+        const filtered = products.filter(p => p.name.trim() === selectedName && (p.size || '-') === selectedSize && p.stock > 0);
+        const uniqueThicks = [...new Set(filtered.map(p => p.thickness || '-'))];
+
+        uniqueThicks.forEach(thick => {
+            thickSelect.innerHTML += `<option value="${thick}">${thick}</option>`;
+        });
+        thickSelect.disabled = false;
+
+        // Otomatis pilih jika hanya ada 1 pilihan ketebalan
+        if (uniqueThicks.length === 1) {
+            thickSelect.value = uniqueThicks[0];
+            onKasirThickChange();
+        }
+    }
+
+    // 4. Ketika Ketebalan Dipilih -> Tentukan Produk & Auto-fill Harga
+    function onKasirThickChange() {
+        const selectedName = document.getElementById('sale-prod-name').value;
+        const selectedSize = document.getElementById('sale-prod-size').value;
+        const selectedThick = document.getElementById('sale-prod-thick').value;
+
+        if (!selectedThick) {
+            selectedProductIndex = -1;
+            document.getElementById('sale-price').value = '';
+            return;
+        }
+
+        const targetIndex = products.findIndex(p => 
+            p.name.trim() === selectedName && 
+            (p.size || '-') === selectedSize && 
+            (p.thickness || '-') === selectedThick && 
+            p.stock > 0
+        );
+
+        if (targetIndex !== -1) {
+            selectedProductIndex = targetIndex;
+            document.getElementById('sale-price').value = products[targetIndex].price;
         } else {
+            selectedProductIndex = -1;
             document.getElementById('sale-price').value = '';
         }
     }
 
     function addToCart() {
-        const pIndex = document.getElementById('sale-product').value;
         const customPrice = parseFloat(document.getElementById('sale-price').value);
         const qty = parseInt(document.getElementById('sale-qty').value);
 
-        if (pIndex === "" || isNaN(customPrice) || customPrice < 0 || isNaN(qty) || qty < 1) {
-            alert('Pilih produk, masukkan harga jual, dan jumlah unit yang valid!');
+        if (selectedProductIndex === -1 || isNaN(customPrice) || customPrice < 0 || isNaN(qty) || qty < 1) {
+            alert('Pilih Produk, Ukuran, Ketebalan, serta pastikan harga jual dan jumlah unit valid!');
             return;
         }
 
-        const product = products[pIndex];
+        const product = products[selectedProductIndex];
 
-        const existingCartItem = cart.find(item => item.productIndex === pIndex && item.price === customPrice);
-        const currentQtyInCart = cart.filter(item => item.productIndex === pIndex).reduce((sum, item) => sum + item.qty, 0);
+        const existingCartItem = cart.find(item => item.productIndex === selectedProductIndex && item.price === customPrice);
+        const currentQtyInCart = cart.filter(item => item.productIndex === selectedProductIndex).reduce((sum, item) => sum + item.qty, 0);
 
         if (qty + currentQtyInCart > product.stock) {
             alert(`Stok tidak mencukupi! Stok tersisa: ${product.stock}`);
@@ -411,7 +485,7 @@
             existingCartItem.totalCost = existingCartItem.qty * existingCartItem.cost;
         } else {
             cart.push({
-                productIndex: pIndex,
+                productIndex: selectedProductIndex,
                 name: product.name,
                 size: product.size || '-',
                 thickness: product.thickness || '-',
@@ -424,6 +498,8 @@
         }
 
         document.getElementById('sale-qty').value = 1;
+        document.getElementById('sale-prod-name').value = '';
+        resetCascadingOptions();
         renderCart();
     }
 
@@ -540,7 +616,6 @@
 
         sales.unshift(newSale);
 
-        // Simpan Pembaruan Stok dan Transaksi Baru ke Cloud Firebase
         db.ref('products').set(products);
         db.ref('sales').set(sales);
 

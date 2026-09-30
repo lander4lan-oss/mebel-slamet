@@ -32,6 +32,10 @@
         .btn-cancel { background: #6b7280; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 8px; font-size: 0.88rem; }
         .btn-cancel:hover { background: #4b5563; }
 
+        .table-filter-bar { display: flex; gap: 12px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .table-filter-bar label { font-size: 0.85rem; font-weight: bold; color: #475569; }
+        .table-filter-bar select { padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.88rem; min-width: 200px; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
         table th, table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
         table th { background: #f8fafc; color: #475569; }
@@ -43,6 +47,8 @@
         .btn-edit:hover { background: #b45309; }
         .btn-danger { background: #dc2626; color: white; }
         .btn-danger:hover { background: #b91c1c; }
+        .btn-sort { background: #475569; color: white; padding: 6px 12px; }
+        .btn-sort:hover { background: #334155; }
 
         .badge-size { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         .badge-thick { background-color: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
@@ -73,7 +79,7 @@
     <p id="login-error" style="color: red; margin-top: 15px; display: none; font-size: 0.85rem;"></p>
 </div>
 
-<!-- TAMPILAN APLIKASI KASIR STOK (Tersembunyi Sebelum Login) -->
+<!-- TAMPILAN APLIKASI KASIR STOK -->
 <div id="app-content" class="container" style="display: none;">
     <header>
         <h1>Mebel Slamet Springbed</h1>
@@ -158,6 +164,20 @@
 
     <div class="card">
         <h2>📋 Daftar Stok Produk & Busa Saat Ini</h2>
+        
+        <!-- BAR FILTER & SORT NAMA PRODUK -->
+        <div class="table-filter-bar">
+            <div>
+                <label>Filter Produk Unik:</label>
+                <select id="filter-name" onchange="renderProducts()">
+                    <option value="">-- Semua Produk --</option>
+                </select>
+            </div>
+            <button type="button" class="btn-sm btn-sort" onclick="toggleSortName()">
+                🔤 Urutkan Nama <span id="sort-icon">▲</span>
+            </button>
+        </div>
+
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -178,13 +198,11 @@
     </div>
 </div>
 
-<!-- SDK FIREBASE BASE & AUTH & DATABASE -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <script>
-    // Konfigurasi Proyek Firebase Mebel Slamet
     const firebaseConfig = {
       apiKey: "AIzaSyAJk0rBzYGNgcGTZQuleVPQU5QD7tKcEHk",
       authDomain: "mebel-slamet.firebaseapp.com",
@@ -201,9 +219,9 @@
     const auth = firebase.auth();
 
     let products = [];
-    let editingIndex = -1; // Menyimpan index produk yang sedang di-edit
+    let editingIndex = -1;
+    let sortAscending = true;
 
-    // Cek Status Login Pengguna
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('login-screen').style.display = 'none';
@@ -215,7 +233,6 @@
         }
     });
 
-    // Login Form Submit
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
@@ -230,15 +247,13 @@
             });
     });
 
-    function logout() {
-        auth.signOut();
-    }
+    function logout() { auth.signOut(); }
 
-    // Mendengarkan Perubahan Data Produk dari Cloud secara Realtime
     function listenCloudProducts() {
         db.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+            updateFilterDropdown();
             renderProducts();
         });
     }
@@ -247,13 +262,62 @@
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
     }
 
+    // Mengisi Dropdown Filter dengan Nama-Nama Unik (Tanpa Duplikasi)
+    function updateFilterDropdown() {
+        const filterSelect = document.getElementById('filter-name');
+        const currentValue = filterSelect.value;
+        
+        // Ekstrak nama unik saja
+        const uniqueNames = [...new Set(products.map(p => p.name.trim()))].sort((a,b) => a.localeCompare(b, 'id'));
+        
+        filterSelect.innerHTML = '<option value="">-- Semua Produk --</option>';
+        uniqueNames.forEach(name => {
+            filterSelect.innerHTML += `<option value="${name}">${name}</option>`;
+        });
+
+        if (uniqueNames.includes(currentValue)) {
+            filterSelect.value = currentValue;
+        }
+    }
+
+    function toggleSortName() {
+        sortAscending = !sortAscending;
+        document.getElementById('sort-icon').innerText = sortAscending ? '▲' : '▼';
+        renderProducts();
+    }
+
     function renderProducts() {
         const pTable = document.getElementById('product-table-body');
         pTable.innerHTML = '';
 
-        products.forEach((p, index) => {
+        const selectedFilterName = document.getElementById('filter-name').value;
+
+        // Pemetaan data beserta index aslinya di array products
+        let mappedProducts = products.map((p, originalIndex) => ({ product: p, originalIndex }));
+
+        // 1. Terapkan Filter Nama Produk Unik
+        if (selectedFilterName) {
+            mappedProducts = mappedProducts.filter(item => item.product.name.trim() === selectedFilterName);
+        }
+
+        // 2. Terapkan Sorting berdasarkan Nama Produk
+        mappedProducts.sort((a, b) => {
+            const nameA = a.product.name.toLowerCase();
+            const nameB = b.product.name.toLowerCase();
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+
+        if (mappedProducts.length === 0) {
+            pTable.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#888;">Tidak ada data produk.</td></tr>';
+            return;
+        }
+
+        mappedProducts.forEach(item => {
+            const p = item.product;
+            const index = item.originalIndex;
             const profitPerUnit = p.price - p.cost;
             const thicknessDisplay = p.thickness && p.thickness !== '-' ? `<span class="badge-thick">${p.thickness}</span>` : '-';
+            
             pTable.innerHTML += `
                 <tr>
                     <td><strong>${p.name}</strong></td>
@@ -273,13 +337,12 @@
         });
     }
 
-    // Fungsi Tambah Stok Cepat saja
     function addStockOnly(index) {
         const p = products[index];
         const thickStr = p.thickness && p.thickness !== '-' ? `, Tebal: ${p.thickness}` : '';
         const inputStr = prompt(`Tambah Stok Masuk:\n"${p.name}" (Ukuran: ${p.size || '-'}${thickStr})\nStok saat ini: ${p.stock}\n\nMasukkan jumlah unit yang akan ditambahkan:`, '1');
         
-        if (inputStr === null) return; // Pengguna menekan tombol Batal
+        if (inputStr === null) return;
 
         const qtyToAdd = parseInt(inputStr);
         if (isNaN(qtyToAdd) || qtyToAdd <= 0) {
@@ -287,14 +350,10 @@
             return;
         }
 
-        // Tambahkan stok ke produk
         products[index].stock += qtyToAdd;
-
-        // Simpan langsung perubahan stok ke Cloud Firebase
         db.ref('products').set(products);
     }
 
-    // Fungsi Mengisi Form Otomatis Saat Tombol Edit Ditekan
     function editProduct(index) {
         editingIndex = index;
         const p = products[index];
@@ -306,15 +365,11 @@
         document.getElementById('prod-price').value = p.price;
         document.getElementById('prod-stock').value = p.stock;
 
-        // Ubah Tampilan Tombol
         document.getElementById('btn-submit-prod').innerText = '💾 Simpan Perubahan Produk';
         document.getElementById('btn-cancel-edit').style.display = 'block';
-
-        // Scroll Halus ke Formulir
         document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Fungsi Membatalkan Mode Edit
     function cancelEdit() {
         editingIndex = -1;
         document.getElementById('product-form').reset();
@@ -333,10 +388,8 @@
         const stock = parseInt(document.getElementById('prod-stock').value);
 
         if (editingIndex > -1) {
-            // Mode Edit: Perbarui langsung data produk pada baris yang dipilih
             products[editingIndex] = { name, size, thickness, cost, price, stock };
         } else {
-            // Mode Tambah Baru / Update Jika Nama, Ukuran & Ketebalan Sama
             const existingIndex = products.findIndex(p => 
                 p.name.toLowerCase() === name.toLowerCase() && 
                 p.size === size && 
@@ -352,17 +405,13 @@
             }
         }
 
-        // Simpan ke Firebase Realtime Database
         db.ref('products').set(products);
-
         cancelEdit();
     });
 
     function deleteProduct(index) {
         if (confirm('Hapus produk ini dari stok cloud?')) {
-            if (editingIndex === index) {
-                cancelEdit();
-            }
+            if (editingIndex === index) cancelEdit();
             products.splice(index, 1);
             db.ref('products').set(products);
         }
